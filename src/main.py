@@ -7,6 +7,7 @@ from routes.compliance import compliance_bp
 from routes.regulation import regulation_bp
 from routes.llm_observability import llm_observability_bp
 from routes.narrative_explainability import narrative_explainability_bp
+from routes.failure_detection import failure_detection_bp
 
 def create_app():
     app = Flask(__name__, static_folder='static', template_folder='static')
@@ -23,6 +24,7 @@ def create_app():
     app.register_blueprint(regulation_bp, url_prefix='/api/regulation')
     app.register_blueprint(llm_observability_bp, url_prefix='/api/llm-observability')
     app.register_blueprint(narrative_explainability_bp, url_prefix='/api/narrative-explainability')
+    app.register_blueprint(failure_detection_bp, url_prefix='/api/failure-detection')
     
     @app.route('/')
     def index():
@@ -43,6 +45,11 @@ def create_app():
     def narrative_explainability_dashboard():
         """Narrative Explainability & Replay dashboard"""
         return render_template('narrative_explainability.html')
+    
+    @app.route('/failure-detection')
+    def failure_detection_dashboard():
+        """Failure Detection & Alert System dashboard"""
+        return render_template('failure_detection.html')
     
     @app.route('/api/health')
     def health_check():
@@ -96,10 +103,11 @@ def create_app():
                     "url": "/api/narrative-explainability"
                 },
                 "5": {
-                    "name": "Failure Detection & Alert System",
-                    "status": "planned", 
-                    "endpoints": 0,
-                    "description": "Advanced failure detection with real-time alerts"
+                    "name": "Failure Detection & Alert System", 
+                    "status": "active",
+                    "endpoints": 14,
+                    "description": "Advanced failure detection with real-time alerts and incident management",
+                    "url": "/api/failure-detection"
                 },
                 "6": {
                     "name": "Bias & Dataset Tracker",
@@ -115,8 +123,8 @@ def create_app():
                 }
             },
             "total_features": 7,
-            "active_features": 4,
-            "total_endpoints": 57,
+            "active_features": 5,
+            "total_endpoints": 71,
             "last_updated": "2025-07-18T14:30:00Z"
         })
     
@@ -141,6 +149,10 @@ def create_app():
                 "total_explanations_generated": 156,
                 "total_ethical_assessments": 89,
                 "total_audit_trails": 23,
+                "total_failures_detected": 2,
+                "total_alerts_generated": 3,
+                "total_incidents_created": 1,
+                "system_health_score": 0.73,
                 "average_compliance_score": 0.87,
                 "average_quality_score": 0.847,
                 "average_ethical_alignment": 0.73,
@@ -151,16 +163,28 @@ def create_app():
                 "regulation_sync": "active",
                 "llm_observability": "active",
                 "narrative_explainability": "active",
-                "failure_detection": "planned",
+                "failure_detection": "active",
                 "bias_tracker": "planned",
                 "testing_sandbox": "planned"
             },
             "recent_activity": [
                 {
                     "timestamp": "2025-07-18T14:25:00Z",
-                    "type": "ethical_assessment",
-                    "description": "Critical ethical concerns detected in customer support session",
+                    "type": "failure_detected",
+                    "description": "Model degradation detected - accuracy dropped 15%",
+                    "severity": "high"
+                },
+                {
+                    "timestamp": "2025-07-18T14:23:00Z",
+                    "type": "alert_triggered",
+                    "description": "Critical error rate spike alert triggered",
                     "severity": "critical"
+                },
+                {
+                    "timestamp": "2025-07-18T14:22:00Z",
+                    "type": "incident_created",
+                    "description": "Major incident created for model performance degradation",
+                    "severity": "high"
                 },
                 {
                     "timestamp": "2025-07-18T14:22:00Z",

@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenThera - Failure Detection & Alert System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #7f8c8d;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .metric-card h3 {
+            color: #2c3e50;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .metric-value.critical { color: #e74c3c; }
+        .metric-value.high { color: #f39c12; }
+        .metric-value.medium { color: #f1c40f; }
+        .metric-value.good { color: #27ae60; }
+        .metric-value.excellent { color: #2ecc71; }
+
+        .metric-trend {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+
+        .health-score {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .health-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            font-weight: bold;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .health-circle::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: conic-gradient(from 0deg, #e74c3c 0%, #f39c12 30%, #f1c40f 60%, #27ae60 80%, #2ecc71 100%);
+            border-radius: 50%;
+        }
+
+        .health-circle::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .health-score-value {
+            position: relative;
+            z-index: 2;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .data-table {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .data-table h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .table th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+        }
+
+        .table tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-critical { background: #e74c3c; color: white; }
+        .status-high { background: #f39c12; color: white; }
+        .status-medium { background: #f1c40f; color: #2c3e50; }
+        .status-low { background: #3498db; color: white; }
+        .status-open { background: #e74c3c; color: white; }
+        .status-acknowledged { background: #f39c12; color: white; }
+        .status-investigating { background: #9b59b6; color: white; }
+        .status-resolved { background: #27ae60; color: white; }
+
+        .action-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 5px;
+        }
+
+        .btn-acknowledge {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-acknowledge:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+        }
+
+        .btn-resolve {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-resolve:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        .btn-simulate {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-simulate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .component-health {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .component-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .component-score {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .filters {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group select {
+            padding: 8px 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 6px;
+            background: white;
+            color: #2c3e50;
+            font-size: 0.9em;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ecf0f1;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #667eea, #764ba2);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+
+        .timeline-time {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .timeline-event {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .timeline-description {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .health-circle {
+                width: 150px;
+                height: 150px;
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Failure Detection & Alert System</h1>
+            <p>Advanced monitoring, failure detection, and incident management for AI systems</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('dashboard')">📊 Dashboard</button>
+            <button class="nav-tab" onclick="showTab('failures')">🚨 Failures</button>
+            <button class="nav-tab" onclick="showTab('alerts')">⚠️ Alerts</button>
+            <button class="nav-tab" onclick="showTab('incidents')">🔥 Incidents</button>
+            <button class="nav-tab" onclick="showTab('monitoring')">📏 Monitoring</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="health-score">
+                <div class="health-circle">
+                    <span class="health-score-value" id="healthScore">0.73</span>
+                </div>
+                <h3>System Health Score</h3>
+                <p id="healthStatus">Degraded - Requires Attention</p>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>Total Failures</h3>
+                    <div class="metric-value high" id="totalFailures">2</div>
+                    <div class="metric-trend">Last 24 hours</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Active Alerts</h3>
+                    <div class="metric-value critical" id="activeAlerts">3</div>
+                    <div class="metric-trend">1 Critical, 1 High, 1 Medium</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Open Incidents</h3>
+                    <div class="metric-value high" id="openIncidents">1</div>
+                    <div class="metric-trend">In investigation</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Availability</h3>
+                    <div class="metric-value medium" id="availability">99.0%</div>
+                    <div class="metric-trend">Below 99.5% target</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Response Time</h3>
+                    <div class="metric-value high" id="responseTime">2.1s</div>
+                    <div class="metric-trend">Above 1.5s baseline</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Error Rate</h3>
+                    <div class="metric-value critical" id="errorRate">2.3%</div>
+                    <div class="metric-trend">Above 1% threshold</div>
+                </div>
+            </div>
+
+            <div class="component-health">
+                <div class="component-card">
+                    <h4>🤖 Models</h4>
+                    <div class="component-score medium">0.80</div>
+                    <p>Degraded</p>
+                </div>
+                <div class="component-card">
+                    <h4>🔌 APIs</h4>
+                    <div class="component-score good">0.85</div>
+                    <p>Good</p>
+                </div>
+                <div class="component-card">
+                    <h4>🔄 Pipelines</h4>
+                    <div class="component-score good">0.88</div>
+                    <p>Good</p>
+                </div>
+                <div class="component-card">
+                    <h4>🔗 Integrations</h4>
+                    <div class="component-score excellent">0.92</div>
+                    <p>Excellent</p>
+                </div>
+            </div>
+
+            <button class="btn-simulate" onclick="simulateFailure()">🧪 Simulate Failure</button>
+
+            <div class="data-table">
+                <h3>Recent Activity</h3>
+                <div id="recentActivity" class="loading">Loading recent activity...</div>
+            </div>
+        </div>
+
+        <!-- Failures Tab -->
+        <div id="failures" class="tab-content">
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Failure Type</label>
+                    <select id="failureTypeFilter" onchange="loadFailures()">
+                        <option value="">All Types</option>
+                        <option value="model_degradation">Model Degradation</option>
+                        <option value="latency_spike">Latency Spike</option>
+                        <option value="error_rate_increase">Error Rate Increase</option>
+                        <option value="bias_drift">Bias Drift</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Component</label>
+                    <select id="componentFilter" onchange="loadFailures()">
+                        <option value="">All Components</option>
+                        <option value="model">Model</option>
+                        <option value="api">API</option>
+                        <option value="pipeline">Pipeline</option>
+                        <option value="integration">Integration</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Min Severity</label>
+                    <select id="severityFilter" onchange="loadFailures()">
+                        <option value="0">All Severities</option>
+                        <option value="0.3">Low (0.3+)</option>
+                        <option value="0.5">Medium (0.5+)</option>
+                        <option value="0.7">High (0.7+)</option>
+                        <option value="0.9">Critical (0.9+)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <h3>Detected Failures</h3>
+                <div id="failuresTable" class="loading">Loading failures...</div>
+            </div>
+        </div>
+
+        <!-- Alerts Tab -->
+        <div id="alerts" class="tab-content">
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Severity</label>
+                    <select id="alertSeverityFilter" onchange="loadAlerts()">
+                        <option value="">All Severities</option>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select id="alertStatusFilter" onchange="loadAlerts()">
+                        <option value="">All Statuses</option>
+                        <option value="open">Open</option>
+                        <option value="acknowledged">Acknowledged</option>
+                        <option value="investigating">Investigating</option>
+                        <option value="resolved">Resolved</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Component</label>
+                    <select id="alertComponentFilter" onchange="loadAlerts()">
+                        <option value="">All Components</option>
+                        <option value="model">Model</option>
+                        <option value="api">API</option>
+                        <option value="pipeline">Pipeline</option>
+                        <option value="integration">Integration</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <h3>Active Alerts</h3>
+                <div id="alertsTable" class="loading">Loading alerts...</div>
+            </div>
+        </div>
+
+        <!-- Incidents Tab -->
+        <div id="incidents" class="tab-content">
+            <div class="data-table">
+                <h3>Incident Management</h3>
+                <div id="incidentsTable" class="loading">Loading incidents...</div>
+            </div>
+
+            <div class="data-table">
+                <h3>Incident Timeline</h3>
+                <div id="incidentTimeline" class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-time">2025-07-18 14:05:00 UTC</div>
+                        <div class="timeline-event">Incident Created</div>
+                        <div class="timeline-description">Model degradation detected and incident opened</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-time">2025-07-18 14:10:00 UTC</div>
+                        <div class="timeline-event">Alert Acknowledged</div>
+                        <div class="timeline-description">Alert acknowledged by on-call engineer</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-time">2025-07-18 14:15:00 UTC</div>
+                        <div class="timeline-event">Investigation Started</div>
+                        <div class="timeline-description">Root cause analysis initiated</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring Tab -->
+        <div id="monitoring" class="tab-content">
+            <div class="data-table">
+                <h3>Monitoring Rules</h3>
+                <div id="monitoringRules" class="loading">Loading monitoring rules...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentTab = 'dashboard';
+        let dashboardData = null;
+
+        // Tab management
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            currentTab = tabName;
+            
+            // Load data for the selected tab
+            switch(tabName) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'failures':
+                    loadFailures();
+                    break;
+                case 'alerts':
+                    loadAlerts();
+                    break;
+                case 'incidents':
+                    loadIncidents();
+                    break;
+                case 'monitoring':
+                    loadMonitoringRules();
+                    break;
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/failure-detection/dashboard?organization_id=org_demo');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    dashboardData = result.data;
+                    updateDashboardUI(result.data);
+                    loadRecentActivity(result.data.recent_activity);
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        // Update dashboard UI
+        function updateDashboardUI(data) {
+            const overview = data.overview;
+            
+            // Update health score
+            document.getElementById('healthScore').textContent = overview.system_health_score.toFixed(2);
+            
+            let healthStatus = 'Excellent';
+            if (overview.system_health_score < 0.6) healthStatus = 'Unhealthy - Critical Issues';
+            else if (overview.system_health_score < 0.8) healthStatus = 'Degraded - Requires Attention';
+            else if (overview.system_health_score < 0.9) healthStatus = 'Good - Minor Issues';
+            
+            document.getElementById('healthStatus').textContent = healthStatus;
+            
+            // Update metrics
+            document.getElementById('totalFailures').textContent = overview.total_failures_detected;
+            document.getElementById('activeAlerts').textContent = overview.total_alerts_generated;
+            document.getElementById('openIncidents').textContent = overview.open_incidents;
+            document.getElementById('availability').textContent = overview.availability_percentage.toFixed(1) + '%';
+            document.getElementById('responseTime').textContent = overview.mean_response_time.toFixed(1) + 's';
+            document.getElementById('errorRate').textContent = (overview.mean_response_time * 0.01).toFixed(1) + '%';
+        }
+
+        // Load recent activity
+        function loadRecentActivity(activities) {
+            const container = document.getElementById('recentActivity');
+            
+            if (!activities || activities.length === 0) {
+                container.innerHTML = '<p>No recent activity</p>';
+                return;
+            }
+            
+            let html = '<table class="table"><thead><tr><th>Time</th><th>Type</th><th>Description</th><th>Severity</th></tr></thead><tbody>';
+            
+            activities.forEach(activity => {
+                const time = new Date(activity.timestamp).toLocaleString();
+                const severityClass = `status-${activity.severity}`;
+                
+                html += `
+                    <tr>
+                        <td>${time}</td>
+                        <td>${activity.type.replace('_', ' ').toUpperCase()}</td>
+                        <td>${activity.description}</td>
+                        <td><span class="status-badge ${severityClass}">${activity.severity}</span></td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Load failures
+        async function loadFailures() {
+            try {
+                const failureType = document.getElementById('failureTypeFilter')?.value || '';
+                const component = document.getElementById('componentFilter')?.value || '';
+                const minSeverity = document.getElementById('severityFilter')?.value || '0';
+                
+                const params = new URLSearchParams({
+                    organization_id: 'org_demo',
+                    limit: '20'
+                });
+                
+                if (failureType) params.append('failure_type', failureType);
+                if (component) params.append('component', component);
+                if (minSeverity !== '0') params.append('min_severity', minSeverity);
+                
+                const response = await fetch(`/api/failure-detection/failures?${params}`);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    displayFailures(result.data.failures);
+                }
+            } catch (error) {
+                console.error('Error loading failures:', error);
+                document.getElementById('failuresTable').innerHTML = '<p>Error loading failures</p>';
+            }
+        }
+
+        // Display failures table
+        function displayFailures(failures) {
+            const container = document.getElementById('failuresTable');
+            
+            if (!failures || failures.length === 0) {
+                container.innerHTML = '<p>No failures detected</p>';
+                return;
+            }
+            
+            let html = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Type</th>
+                            <th>Component</th>
+                            <th>Severity</th>
+                            <th>Description</th>
+                            <th>Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            failures.forEach(failure => {
+                const time = new Date(failure.detected_at).toLocaleString();
+                const severityClass = failure.severity_score >= 0.8 ? 'critical' : 
+                                    failure.severity_score >= 0.6 ? 'high' : 
+                                    failure.severity_score >= 0.4 ? 'medium' : 'low';
+                
+                html += `
+                    <tr>
+                        <td>${time}</td>
+                        <td>${failure.failure_type.replace('_', ' ')}</td>
+                        <td>${failure.affected_component}</td>
+                        <td><span class="status-badge status-${severityClass}">${(failure.severity_score * 100).toFixed(0)}%</span></td>
+                        <td>${failure.failure_description}</td>
+                        <td>${(failure.confidence_level * 100).toFixed(0)}%</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Load alerts
+        async function loadAlerts() {
+            try {
+                const severity = document.getElementById('alertSeverityFilter')?.value || '';
+                const status = document.getElementById('alertStatusFilter')?.value || '';
+                const component = document.getElementById('alertComponentFilter')?.value || '';
+                
+                const params = new URLSearchParams({
+                    organization_id: 'org_demo',
+                    limit: '20'
+                });
+                
+                if (severity) params.append('severity', severity);
+                if (status) params.append('status', status);
+                if (component) params.append('component', component);
+                
+                const response = await fetch(`/api/failure-detection/alerts?${params}`);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    displayAlerts(result.data.alerts);
+                }
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+                document.getElementById('alertsTable').innerHTML = '<p>Error loading alerts</p>';
+            }
+        }
+
+        // Display alerts table
+        function displayAlerts(alerts) {
+            const container = document.getElementById('alertsTable');
+            
+            if (!alerts || alerts.length === 0) {
+                container.innerHTML = '<p>No alerts found</p>';
+                return;
+            }
+            
+            let html = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Title</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                            <th>Component</th>
+                            <th>Age</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            alerts.forEach(alert => {
+                const time = new Date(alert.triggered_at).toLocaleString();
+                const ageMinutes = Math.floor(alert.age_minutes);
+                const ageText = ageMinutes < 60 ? `${ageMinutes}m` : `${Math.floor(ageMinutes/60)}h ${ageMinutes%60}m`;
+                
+                let actions = '';
+                if (alert.status === 'open' && alert.acknowledgment_required) {
+                    actions += `<button class="action-button btn-acknowledge" onclick="acknowledgeAlert('${alert.id}')">Acknowledge</button>`;
+                }
+                if (alert.status !== 'resolved') {
+                    actions += `<button class="action-button btn-resolve" onclick="resolveAlert('${alert.id}')">Resolve</button>`;
+                }
+                
+                html += `
+                    <tr>
+                        <td>${time}</td>
+                        <td>${alert.title}</td>
+                        <td><span class="status-badge status-${alert.severity}">${alert.severity}</span></td>
+                        <td><span class="status-badge status-${alert.status}">${alert.status}</span></td>
+                        <td>${alert.source_component}</td>
+                        <td>${ageText}</td>
+                        <td>${actions}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Load incidents
+        async function loadIncidents() {
+            try {
+                const response = await fetch('/api/failure-detection/incidents?organization_id=org_demo');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    displayIncidents(result.data.incidents);
+                }
+            } catch (error) {
+                console.error('Error loading incidents:', error);
+                document.getElementById('incidentsTable').innerHTML = '<p>Error loading incidents</p>';
+            }
+        }
+
+        // Display incidents table
+        function displayIncidents(incidents) {
+            const container = document.getElementById('incidentsTable');
+            
+            if (!incidents || incidents.length === 0) {
+                container.innerHTML = '<p>No incidents found</p>';
+                return;
+            }
+            
+            let html = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Created</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Severity</th>
+                            <th>Priority</th>
+                            <th>Affected Users</th>
+                            <th>Assigned To</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            incidents.forEach(incident => {
+                const time = new Date(incident.created_at).toLocaleString();
+                
+                html += `
+                    <tr>
+                        <td>${time}</td>
+                        <td>${incident.incident_title}</td>
+                        <td><span class="status-badge status-${incident.status}">${incident.status}</span></td>
+                        <td><span class="status-badge status-${incident.severity}">${incident.severity}</span></td>
+                        <td>P${incident.priority}</td>
+                        <td>${incident.affected_users.toLocaleString()}</td>
+                        <td>${incident.assigned_to || 'Unassigned'}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Load monitoring rules
+        async function loadMonitoringRules() {
+            try {
+                const response = await fetch('/api/failure-detection/monitoring-rules?organization_id=org_demo');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    displayMonitoringRules(result.data.monitoring_rules);
+                }
+            } catch (error) {
+                console.error('Error loading monitoring rules:', error);
+                document.getElementById('monitoringRules').innerHTML = '<p>Error loading monitoring rules</p>';
+            }
+        }
+
+        // Display monitoring rules table
+        function displayMonitoringRules(rules) {
+            const container = document.getElementById('monitoringRules');
+            
+            if (!rules || rules.length === 0) {
+                container.innerHTML = '<p>No monitoring rules configured</p>';
+                return;
+            }
+            
+            let html = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Rule Name</th>
+                            <th>Metric</th>
+                            <th>Component</th>
+                            <th>Threshold</th>
+                            <th>Status</th>
+                            <th>Triggers</th>
+                            <th>False Positives</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            rules.forEach(rule => {
+                const threshold = rule.threshold_value ? 
+                    `${rule.threshold_operator} ${rule.threshold_value}` : 
+                    rule.threshold_type;
+                
+                html += `
+                    <tr>
+                        <td>${rule.rule_name}</td>
+                        <td>${rule.metric_name.replace('_', ' ')}</td>
+                        <td>${rule.component_type}</td>
+                        <td>${threshold}</td>
+                        <td><span class="status-badge ${rule.is_active ? 'status-good' : 'status-low'}">${rule.is_active ? 'Active' : 'Inactive'}</span></td>
+                        <td>${rule.trigger_count}</td>
+                        <td>${rule.false_positive_count}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Acknowledge alert
+        async function acknowledgeAlert(alertId) {
+            try {
+                const response = await fetch(`/api/failure-detection/alerts/${alertId}/acknowledge`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        acknowledged_by: 'user_demo',
+                        notes: 'Alert acknowledged via dashboard'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    alert('Alert acknowledged successfully');
+                    loadAlerts(); // Refresh alerts table
+                    if (currentTab === 'dashboard') loadDashboard(); // Refresh dashboard if visible
+                } else {
+                    alert('Error acknowledging alert: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error acknowledging alert:', error);
+                alert('Error acknowledging alert');
+            }
+        }
+
+        // Resolve alert
+        async function resolveAlert(alertId) {
+            try {
+                const response = await fetch(`/api/failure-detection/alerts/${alertId}/resolve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        resolved_by: 'user_demo',
+                        resolution_notes: 'Issue resolved via dashboard'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    alert('Alert resolved successfully');
+                    loadAlerts(); // Refresh alerts table
+                    if (currentTab === 'dashboard') loadDashboard(); // Refresh dashboard if visible
+                } else {
+                    alert('Error resolving alert: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error resolving alert:', error);
+                alert('Error resolving alert');
+            }
+        }
+
+        // Simulate failure
+        async function simulateFailure() {
+            try {
+                const simulationType = prompt('Enter simulation type (model_degradation, latency_spike, error_rate_increase):', 'model_degradation');
+                
+                if (!simulationType) return;
+                
+                const response = await fetch('/api/failure-detection/simulate-failure', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        simulation_type: simulationType
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    alert(`Simulation successful: ${result.data.message}`);
+                    loadDashboard(); // Refresh dashboard
+                    if (currentTab === 'failures') loadFailures();
+                    if (currentTab === 'alerts') loadAlerts();
+                } else {
+                    alert('Error simulating failure: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error simulating failure:', error);
+                alert('Error simulating failure');
+            }
+        }
+
+        // Auto-refresh dashboard every 30 seconds
+        setInterval(() => {
+            if (currentTab === 'dashboard') {
+                loadDashboard();
+            }
+        }, 30000);
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+        });
+    </script>
+</body>
+</html>
+
