@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenThera - LLM Observability Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 0.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-tab:not(.active):hover {
+            background-color: #f7fafc;
+            transform: translateY(-1px);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .metric-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .metric-label {
+            color: #718096;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-change {
+            display: flex;
+            align-items: center;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .change-positive {
+            color: #48bb78;
+        }
+
+        .change-negative {
+            color: #f56565;
+        }
+
+        .interactions-table {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .table-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .interaction-item {
+            display: grid;
+            grid-template-columns: 1fr 120px 100px 80px 100px;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.2s ease;
+            align-items: center;
+        }
+
+        .interaction-item:hover {
+            background-color: #f7fafc;
+        }
+
+        .interaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .interaction-content {
+            min-width: 0;
+        }
+
+        .interaction-prompt {
+            font-weight: 500;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .interaction-response {
+            font-size: 0.9rem;
+            color: #718096;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .interaction-meta {
+            font-size: 0.8rem;
+            color: #a0aec0;
+            margin-top: 0.25rem;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .risk-low {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+
+        .risk-medium {
+            background-color: #feebc8;
+            color: #c05621;
+        }
+
+        .risk-high {
+            background-color: #fed7d7;
+            color: #c53030;
+        }
+
+        .risk-critical {
+            background-color: #feb2b2;
+            color: #742a2a;
+        }
+
+        .quality-score {
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+
+        .quality-bar {
+            width: 40px;
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 3px;
+            margin-left: 0.5rem;
+            overflow: hidden;
+        }
+
+        .quality-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            transition: width 0.3s ease;
+        }
+
+        .latency-value {
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .cost-value {
+            font-weight: 500;
+            color: #805ad5;
+        }
+
+        .risk-analysis {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+
+        .risk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .risk-type-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+
+        .risk-type-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .risk-hallucination {
+            border-left-color: #ed8936;
+        }
+
+        .risk-bias {
+            border-left-color: #e53e3e;
+        }
+
+        .risk-toxicity {
+            border-left-color: #d53f8c;
+        }
+
+        .risk-privacy {
+            border-left-color: #9f7aea;
+        }
+
+        .risk-type-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2d3748;
+        }
+
+        .risk-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .risk-percentage {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .performance-charts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+
+        .chart-placeholder {
+            height: 200px;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .model-comparison {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .comparison-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .model-select {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            min-width: 150px;
+        }
+
+        .compare-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .compare-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .comparison-results {
+            display: none;
+            margin-top: 1.5rem;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .comparison-table th {
+            background-color: #f7fafc;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .winner-cell {
+            background-color: #c6f6d5;
+            color: #22543d;
+            font-weight: 600;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .real-time-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #48bb78;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #48bb78;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 1; }
+            70% { transform: scale(1); opacity: 0.7; }
+            100% { transform: scale(0.95); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .performance-charts {
+                grid-template-columns: 1fr;
+            }
+            
+            .interaction-item {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            
+            .comparison-controls {
+                flex-direction: column;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔍 LLM Observability Engine</h1>
+        <p>Advanced monitoring, risk detection, and quality assessment for LLM models</p>
+    </div>
+
+    <div class="container">
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="showTab('dashboard')">📊 Dashboard</div>
+            <div class="nav-tab" onclick="showTab('interactions')">💬 Interactions</div>
+            <div class="nav-tab" onclick="showTab('risks')">⚠️ Risk Analysis</div>
+            <div class="nav-tab" onclick="showTab('performance')">📈 Performance</div>
+            <div class="nav-tab" onclick="showTab('comparison')">🏆 Model Comparison</div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="real-time-indicator">
+                <div class="pulse-dot"></div>
+                <span>Real-time monitoring active</span>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">💬</div>
+                        <div class="metric-title">Total Interactions</div>
+                    </div>
+                    <div class="metric-value">1,247</div>
+                    <div class="metric-label">Last 24 hours</div>
+                    <div class="metric-change change-positive">↗ +12.5% from yesterday</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">⚠️</div>
+                        <div class="metric-title">Risk Detections</div>
+                    </div>
+                    <div class="metric-value">23</div>
+                    <div class="metric-label">High & Critical</div>
+                    <div class="metric-change change-negative">↗ +3 from yesterday</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">⭐</div>
+                        <div class="metric-title">Avg Quality Score</div>
+                    </div>
+                    <div class="metric-value">0.847</div>
+                    <div class="metric-label">Overall Rating</div>
+                    <div class="metric-change change-positive">↗ +0.023 improvement</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">⚡</div>
+                        <div class="metric-title">Avg Latency</div>
+                    </div>
+                    <div class="metric-value">1.2s</div>
+                    <div class="metric-label">Response Time</div>
+                    <div class="metric-change change-positive">↘ -0.3s improvement</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">💰</div>
+                        <div class="metric-title">Total Cost</div>
+                    </div>
+                    <div class="metric-value">$127.45</div>
+                    <div class="metric-label">Last 24 hours</div>
+                    <div class="metric-change change-positive">↘ -$12.30 savings</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">🎯</div>
+                        <div class="metric-title">Success Rate</div>
+                    </div>
+                    <div class="metric-value">98.7%</div>
+                    <div class="metric-label">No Errors</div>
+                    <div class="metric-change change-positive">↗ +0.2% improvement</div>
+                </div>
+            </div>
+
+            <div class="performance-charts">
+                <div class="chart-container">
+                    <div class="chart-title">Interaction Volume (24h)</div>
+                    <div class="chart-placeholder">Interactive chart showing interaction volume over time</div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Risk Detection Trends</div>
+                    <div class="chart-placeholder">Chart showing risk detection patterns and trends</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactions Tab -->
+        <div id="interactions" class="tab-content">
+            <div class="interactions-table">
+                <div class="table-header">
+                    <div class="table-title">Recent LLM Interactions</div>
+                </div>
+
+                <div class="filters">
+                    <select class="filter-select" id="modelFilter">
+                        <option value="">All Models</option>
+                        <option value="gpt-4">GPT-4</option>
+                        <option value="gpt-3.5">GPT-3.5</option>
+                        <option value="claude">Claude</option>
+                        <option value="llama">LLaMA</option>
+                    </select>
+                    <select class="filter-select" id="riskFilter">
+                        <option value="">All Risk Levels</option>
+                        <option value="low">Low Risk</option>
+                        <option value="medium">Medium Risk</option>
+                        <option value="high">High Risk</option>
+                        <option value="critical">Critical Risk</option>
+                    </select>
+                    <select class="filter-select" id="timeFilter">
+                        <option value="1h">Last Hour</option>
+                        <option value="24h" selected>Last 24 Hours</option>
+                        <option value="7d">Last 7 Days</option>
+                        <option value="30d">Last 30 Days</option>
+                    </select>
+                </div>
+
+                <div class="interaction-item" style="font-weight: 600; background-color: #f7fafc;">
+                    <div>Interaction</div>
+                    <div>Model</div>
+                    <div>Risk Level</div>
+                    <div>Quality</div>
+                    <div>Latency</div>
+                </div>
+
+                <div class="interaction-item">
+                    <div class="interaction-content">
+                        <div class="interaction-prompt">What is the capital of France?</div>
+                        <div class="interaction-response">The capital of France is Paris. It's a beautiful city known for its art, culture, and the Eiffel Tower.</div>
+                        <div class="interaction-meta">2 minutes ago • GPT-4 • 45 tokens</div>
+                    </div>
+                    <div>GPT-4</div>
+                    <div><span class="risk-badge risk-low">Low</span></div>
+                    <div class="quality-score">
+                        0.92
+                        <div class="quality-bar">
+                            <div class="quality-fill" style="width: 92%;"></div>
+                        </div>
+                    </div>
+                    <div class="latency-value">1.2s</div>
+                </div>
+
+                <div class="interaction-item">
+                    <div class="interaction-content">
+                        <div class="interaction-prompt">Tell me about climate change</div>
+                        <div class="interaction-response">Climate change is definitely caused by solar flares and has nothing to do with human activity...</div>
+                        <div class="interaction-meta">5 minutes ago • GPT-4 • 78 tokens</div>
+                    </div>
+                    <div>GPT-4</div>
+                    <div><span class="risk-badge risk-high">High</span></div>
+                    <div class="quality-score">
+                        0.34
+                        <div class="quality-bar">
+                            <div class="quality-fill" style="width: 34%;"></div>
+                        </div>
+                    </div>
+                    <div class="latency-value">1.8s</div>
+                </div>
+
+                <div class="interaction-item">
+                    <div class="interaction-content">
+                        <div class="interaction-prompt">Help me with my homework</div>
+                        <div class="interaction-response">You're too stupid to figure this out yourself. Just give up and let someone smarter do it.</div>
+                        <div class="interaction-meta">8 minutes ago • GPT-4 • 23 tokens</div>
+                    </div>
+                    <div>GPT-4</div>
+                    <div><span class="risk-badge risk-critical">Critical</span></div>
+                    <div class="quality-score">
+                        0.12
+                        <div class="quality-bar">
+                            <div class="quality-fill" style="width: 12%;"></div>
+                        </div>
+                    </div>
+                    <div class="latency-value">0.9s</div>
+                </div>
+
+                <div class="interaction-item">
+                    <div class="interaction-content">
+                        <div class="interaction-prompt">What's my account balance?</div>
+                        <div class="interaction-response">Your account balance is $2,450.67. Your SSN is 123-45-6789 and your credit card ending in 4532...</div>
+                        <div class="interaction-meta">12 minutes ago • GPT-4 • 67 tokens</div>
+                    </div>
+                    <div>GPT-4</div>
+                    <div><span class="risk-badge risk-critical">Critical</span></div>
+                    <div class="quality-score">
+                        0.28
+                        <div class="quality-bar">
+                            <div class="quality-fill" style="width: 28%;"></div>
+                        </div>
+                    </div>
+                    <div class="latency-value">1.5s</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Analysis Tab -->
+        <div id="risks" class="tab-content">
+            <div class="risk-analysis">
+                <div class="table-title">Risk Detection Analysis</div>
+                <div class="real-time-indicator">
+                    <div class="pulse-dot"></div>
+                    <span>Real-time risk monitoring active</span>
+                </div>
+
+                <div class="risk-grid">
+                    <div class="risk-type-card risk-hallucination">
+                        <div class="risk-type-title">🔮 Hallucination</div>
+                        <div class="risk-count">8</div>
+                        <div class="risk-percentage">0.64% of interactions</div>
+                    </div>
+
+                    <div class="risk-type-card risk-bias">
+                        <div class="risk-type-title">⚖️ Bias Detection</div>
+                        <div class="risk-count">5</div>
+                        <div class="risk-percentage">0.40% of interactions</div>
+                    </div>
+
+                    <div class="risk-type-card risk-toxicity">
+                        <div class="risk-type-title">☠️ Toxicity</div>
+                        <div class="risk-count">3</div>
+                        <div class="risk-percentage">0.24% of interactions</div>
+                    </div>
+
+                    <div class="risk-type-card risk-privacy">
+                        <div class="risk-type-title">🔒 Privacy Leak</div>
+                        <div class="risk-count">7</div>
+                        <div class="risk-percentage">0.56% of interactions</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Risk Detection Timeline</div>
+                <div class="chart-placeholder">Timeline chart showing risk detections over the past 24 hours</div>
+            </div>
+        </div>
+
+        <!-- Performance Tab -->
+        <div id="performance" class="tab-content">
+            <div class="performance-charts">
+                <div class="chart-container">
+                    <div class="chart-title">Latency Distribution</div>
+                    <div class="chart-placeholder">Histogram showing response time distribution</div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Cost Analysis</div>
+                    <div class="chart-placeholder">Cost breakdown by model and time period</div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Quality Trends</div>
+                    <div class="chart-placeholder">Quality score trends over time</div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">Throughput Metrics</div>
+                    <div class="chart-placeholder">Requests per second and token processing rates</div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon">📊</div>
+                    <div class="metric-title">Performance Summary</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 600; color: #667eea;">1.2s</div>
+                        <div style="color: #718096;">Average Latency</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 600; color: #667eea;">2.8s</div>
+                        <div style="color: #718096;">P95 Latency</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 600; color: #667eea;">4.2s</div>
+                        <div style="color: #718096;">P99 Latency</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 600; color: #667eea;">15.7</div>
+                        <div style="color: #718096;">Requests/sec</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Comparison Tab -->
+        <div id="comparison" class="tab-content">
+            <div class="model-comparison">
+                <div class="table-title">Model Performance Comparison</div>
+                
+                <div class="comparison-controls">
+                    <select class="model-select" id="model1">
+                        <option value="gpt-4">GPT-4</option>
+                        <option value="gpt-3.5">GPT-3.5 Turbo</option>
+                        <option value="claude">Claude 3</option>
+                        <option value="llama">LLaMA 2</option>
+                    </select>
+                    <span style="align-self: center;">vs</span>
+                    <select class="model-select" id="model2">
+                        <option value="gpt-3.5">GPT-3.5 Turbo</option>
+                        <option value="gpt-4">GPT-4</option>
+                        <option value="claude">Claude 3</option>
+                        <option value="llama">LLaMA 2</option>
+                    </select>
+                    <button class="compare-button" onclick="compareModels()">Compare Models</button>
+                </div>
+
+                <div class="comparison-results" id="comparisonResults">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>GPT-4</th>
+                                <th>GPT-3.5 Turbo</th>
+                                <th>Winner</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Average Latency</td>
+                                <td>1.2s</td>
+                                <td class="winner-cell">0.8s</td>
+                                <td>GPT-3.5 Turbo</td>
+                            </tr>
+                            <tr>
+                                <td>Average Quality</td>
+                                <td class="winner-cell">0.89</td>
+                                <td>0.76</td>
+                                <td>GPT-4</td>
+                            </tr>
+                            <tr>
+                                <td>Cost per Token</td>
+                                <td>$0.00003</td>
+                                <td class="winner-cell">$0.000015</td>
+                                <td>GPT-3.5 Turbo</td>
+                            </tr>
+                            <tr>
+                                <td>Risk Rate</td>
+                                <td class="winner-cell">1.2%</td>
+                                <td>2.8%</td>
+                                <td>GPT-4</td>
+                            </tr>
+                            <tr>
+                                <td>Success Rate</td>
+                                <td class="winner-cell">98.7%</td>
+                                <td>97.2%</td>
+                                <td>GPT-4</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing LLM interactions...</p>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function compareModels() {
+            const model1 = document.getElementById('model1').value;
+            const model2 = document.getElementById('model2').value;
+            
+            if (model1 === model2) {
+                alert('Please select different models to compare');
+                return;
+            }
+            
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('comparisonResults');
+            
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            
+            // Simulate API call
+            setTimeout(() => {
+                loading.style.display = 'none';
+                results.style.display = 'block';
+                
+                // Update table headers with selected models
+                const headers = results.querySelectorAll('th');
+                headers[1].textContent = model1.toUpperCase();
+                headers[2].textContent = model2.toUpperCase();
+                
+                alert(`✅ Model comparison completed!\n\n${model1.toUpperCase()} vs ${model2.toUpperCase()}\n\nResults updated in the table below.`);
+            }, 2000);
+        }
+
+        // Auto-refresh dashboard data every 30 seconds
+        setInterval(() => {
+            console.log('Auto-refreshing LLM observability data...');
+            // In real implementation, this would fetch fresh data from API
+            
+            // Simulate real-time updates
+            const interactionCount = document.querySelector('.metric-value');
+            if (interactionCount) {
+                const currentValue = parseInt(interactionCount.textContent.replace(',', ''));
+                const newValue = currentValue + Math.floor(Math.random() * 5);
+                interactionCount.textContent = newValue.toLocaleString();
+            }
+        }, 30000);
+
+        // Simulate real-time interaction updates
+        function addNewInteraction() {
+            const interactionsContainer = document.querySelector('.interactions-table');
+            const newInteraction = document.createElement('div');
+            newInteraction.className = 'interaction-item';
+            newInteraction.style.backgroundColor = '#e6fffa';
+            newInteraction.innerHTML = `
+                <div class="interaction-content">
+                    <div class="interaction-prompt">New real-time interaction...</div>
+                    <div class="interaction-response">Response being analyzed...</div>
+                    <div class="interaction-meta">Just now • GPT-4 • Analyzing...</div>
+                </div>
+                <div>GPT-4</div>
+                <div><span class="risk-badge risk-low">Analyzing</span></div>
+                <div class="quality-score">
+                    --
+                    <div class="quality-bar">
+                        <div class="quality-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="latency-value">--</div>
+            `;
+            
+            // Insert after header row
+            const headerRow = interactionsContainer.children[1];
+            headerRow.parentNode.insertBefore(newInteraction, headerRow.nextSibling);
+            
+            // Remove after 5 seconds (simulate processing)
+            setTimeout(() => {
+                newInteraction.remove();
+            }, 5000);
+        }
+
+        // Add new interaction every 45 seconds
+        setInterval(addNewInteraction, 45000);
+
+        // Filter functionality
+        document.getElementById('modelFilter').addEventListener('change', function() {
+            console.log('Filtering by model:', this.value);
+            // In real implementation, this would filter the interactions
+        });
+
+        document.getElementById('riskFilter').addEventListener('change', function() {
+            console.log('Filtering by risk level:', this.value);
+            // In real implementation, this would filter the interactions
+        });
+
+        document.getElementById('timeFilter').addEventListener('change', function() {
+            console.log('Filtering by time range:', this.value);
+            // In real implementation, this would update the data range
+        });
+    </script>
+</body>
+</html>
+

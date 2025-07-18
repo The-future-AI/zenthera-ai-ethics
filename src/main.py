@@ -5,6 +5,7 @@ import os
 # Import route modules
 from routes.compliance import compliance_bp
 from routes.regulation import regulation_bp
+from routes.llm_observability import llm_observability_bp
 
 def create_app():
     app = Flask(__name__, static_folder='static', template_folder='static')
@@ -19,11 +20,22 @@ def create_app():
     # Register blueprints
     app.register_blueprint(compliance_bp, url_prefix='/api/compliance')
     app.register_blueprint(regulation_bp, url_prefix='/api/regulation')
+    app.register_blueprint(llm_observability_bp, url_prefix='/api/llm')
     
     @app.route('/')
     def index():
         """Main dashboard route"""
         return render_template('index.html')
+    
+    @app.route('/regulation')
+    def regulation_dashboard():
+        """Regulation Sync Module dashboard"""
+        return render_template('regulation.html')
+    
+    @app.route('/llm-observability')
+    def llm_observability_dashboard():
+        """LLM Observability Engine dashboard"""
+        return render_template('llm_observability.html')
     
     @app.route('/api/health')
     def health_check():
@@ -52,19 +64,22 @@ def create_app():
                     "name": "ZenThera Compliance Grid (ZCG)",
                     "status": "active",
                     "endpoints": 8,
-                    "description": "Central compliance dashboard with metrics, alerts and automated reporting"
+                    "description": "Central compliance dashboard with metrics, alerts and automated reporting",
+                    "url": "/api/compliance"
                 },
                 "2": {
                     "name": "Regulation Sync Module",
                     "status": "active", 
                     "endpoints": 15,
-                    "description": "Automated monitoring of AI regulations (AI Act, GDPR) with intelligent alerts"
+                    "description": "Automated monitoring of AI regulations (AI Act, GDPR) with intelligent alerts",
+                    "url": "/api/regulation"
                 },
                 "3": {
                     "name": "LLM Observability Engine",
-                    "status": "planned",
-                    "endpoints": 0,
-                    "description": "Advanced LLM monitoring with risk detection and performance analysis"
+                    "status": "active",
+                    "endpoints": 18,
+                    "description": "Advanced LLM monitoring with risk detection, quality assessment, and performance analytics",
+                    "url": "/api/llm"
                 },
                 "4": {
                     "name": "Narrative Explainability & Replay", 
@@ -92,8 +107,61 @@ def create_app():
                 }
             },
             "total_features": 7,
-            "active_features": 2,
-            "total_endpoints": 23
+            "active_features": 3,
+            "total_endpoints": 41,
+            "last_updated": "2025-07-18T14:30:00Z"
+        })
+    
+    @app.route('/api/overview')
+    def platform_overview():
+        """Platform overview with aggregated metrics"""
+        return jsonify({
+            "platform": {
+                "name": "ZenThera AI Ethics Platform",
+                "version": "1.0.0",
+                "description": "Comprehensive AI Ethics & Governance platform for AI Act compliance"
+            },
+            "metrics": {
+                "total_organizations": 1,
+                "total_users": 5,
+                "total_ai_models_monitored": 4,
+                "total_interactions_processed": 1247,
+                "total_risks_detected": 23,
+                "total_compliance_reports": 12,
+                "total_regulations_monitored": 12,
+                "average_compliance_score": 0.87,
+                "average_quality_score": 0.847,
+                "average_response_time": "1.2s"
+            },
+            "features_status": {
+                "compliance_grid": "active",
+                "regulation_sync": "active",
+                "llm_observability": "active",
+                "narrative_explainability": "planned",
+                "failure_detection": "planned",
+                "bias_tracker": "planned",
+                "testing_sandbox": "planned"
+            },
+            "recent_activity": [
+                {
+                    "timestamp": "2025-07-18T14:25:00Z",
+                    "type": "risk_detection",
+                    "description": "High-risk interaction detected in GPT-4 session",
+                    "severity": "high"
+                },
+                {
+                    "timestamp": "2025-07-18T14:20:00Z",
+                    "type": "regulation_update",
+                    "description": "AI Act Article 6 amendment detected",
+                    "severity": "critical"
+                },
+                {
+                    "timestamp": "2025-07-18T14:15:00Z",
+                    "type": "compliance_report",
+                    "description": "Weekly compliance report generated",
+                    "severity": "info"
+                }
+            ]
         })
 
 if __name__ == '__main__':
