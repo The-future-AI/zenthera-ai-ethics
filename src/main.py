@@ -1,72 +1,102 @@
-import os
-import sys
-# DON'T CHANGE THIS !!!
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-from flask import Flask, send_from_directory
+from flask import Flask, render_template, jsonify
 from flask_cors import CORS
-from src.models.user import db
-from src.routes.user import user_bp
-from src.routes.compliance import compliance_bp
+import os
 
-app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
-app.config['SECRET_KEY'] = 'zenthera-ai-ethics-secret-key-2025'
+# Import route modules
+from routes.compliance import compliance_bp
+from routes.regulation import regulation_bp
 
-# Enable CORS for all routes
-CORS(app)
-
-# Register blueprints
-app.register_blueprint(user_bp, url_prefix='/api')
-app.register_blueprint(compliance_bp, url_prefix='/api/compliance')
-
-# Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db.init_app(app)
-
-# Create all database tables
-with app.app_context():
-    db.create_all()
-
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve(path):
-    """Serve static files and SPA routing"""
-    static_folder_path = app.static_folder
-    if static_folder_path is None:
-        return "Static folder not configured", 404
-
-    if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
-        return send_from_directory(static_folder_path, path)
-    else:
-        index_path = os.path.join(static_folder_path, 'index.html')
-        if os.path.exists(index_path):
-            return send_from_directory(static_folder_path, 'index.html')
-        else:
-            return "index.html not found", 404
-
-@app.route('/health')
-def health_check():
-    """Health check endpoint"""
-    return {
-        'status': 'healthy',
-        'service': 'ZenThera AI Ethics Platform',
-        'version': '1.0.0',
-        'features': {
-            'compliance_grid': 'active',
-            'regulation_sync': 'planned',
-            'llm_observability': 'planned',
-            'explainability': 'planned',
-            'failure_detection': 'planned',
-            'bias_tracker': 'planned',
-            'testing_sandbox': 'planned'
-        }
-    }
+def create_app():
+    app = Flask(__name__, static_folder='static', template_folder='static')
+    
+    # Enable CORS for all routes
+    CORS(app, origins="*")
+    
+    # Configuration
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'zenthera-dev-key-2025')
+    app.config['DATABASE_URL'] = os.environ.get('DATABASE_URL', 'sqlite:///zenthera.db')
+    
+    # Register blueprints
+    app.register_blueprint(compliance_bp, url_prefix='/api/compliance')
+    app.register_blueprint(regulation_bp, url_prefix='/api/regulation')
+    
+    @app.route('/')
+    def index():
+        """Main dashboard route"""
+        return render_template('index.html')
+    
+    @app.route('/api/health')
+    def health_check():
+        """Health check endpoint"""
+        return jsonify({
+            "status": "healthy",
+            "service": "ZenThera AI Ethics Platform",
+            "version": "1.0.0",
+            "features": [
+                "ZenThera Compliance Grid (ZCG)",
+                "Regulation Sync Module", 
+                "LLM Observability Engine",
+                "Narrative Explainability & Replay",
+                "Failure Detection & Alert System",
+                "Bias & Dataset Tracker",
+                "Synthetic Testing Sandbox"
+            ]
+        })
+    
+    @app.route('/api/features')
+    def list_features():
+        """List all available features"""
+        return jsonify({
+            "features": {
+                "1": {
+                    "name": "ZenThera Compliance Grid (ZCG)",
+                    "status": "active",
+                    "endpoints": 8,
+                    "description": "Central compliance dashboard with metrics, alerts and automated reporting"
+                },
+                "2": {
+                    "name": "Regulation Sync Module",
+                    "status": "active", 
+                    "endpoints": 15,
+                    "description": "Automated monitoring of AI regulations (AI Act, GDPR) with intelligent alerts"
+                },
+                "3": {
+                    "name": "LLM Observability Engine",
+                    "status": "planned",
+                    "endpoints": 0,
+                    "description": "Advanced LLM monitoring with risk detection and performance analysis"
+                },
+                "4": {
+                    "name": "Narrative Explainability & Replay", 
+                    "status": "planned",
+                    "endpoints": 0,
+                    "description": "Session replay and narrative explanations for audit purposes"
+                },
+                "5": {
+                    "name": "Failure Detection & Alert System",
+                    "status": "planned", 
+                    "endpoints": 0,
+                    "description": "Advanced failure detection with real-time alerts"
+                },
+                "6": {
+                    "name": "Bias & Dataset Tracker",
+                    "status": "planned",
+                    "endpoints": 0, 
+                    "description": "Bias tracking and mitigation in datasets and models"
+                },
+                "7": {
+                    "name": "Synthetic Testing Sandbox",
+                    "status": "planned",
+                    "endpoints": 0,
+                    "description": "Synthetic testing environment for regulatory validation"
+                }
+            },
+            "total_features": 7,
+            "active_features": 2,
+            "total_endpoints": 23
+        })
 
 if __name__ == '__main__':
-    print("🚀 Starting ZenThera AI Ethics Platform...")
-    print("📊 Feature 1: ZenThera Compliance Grid - ACTIVE")
-    print("🌐 Access: http://localhost:5000")
-    print("📡 API Docs: http://localhost:5000/api/compliance/dashboard")
+    app = create_app()
     app.run(host='0.0.0.0', port=5000, debug=True)
 

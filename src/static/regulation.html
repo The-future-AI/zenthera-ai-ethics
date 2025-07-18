@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenThera - Regulation Sync Module</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+
+        .metric-label {
+            color: #718096;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-active { background-color: #48bb78; }
+        .status-warning { background-color: #ed8936; }
+        .status-error { background-color: #f56565; }
+
+        .regulation-list {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .regulation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.2s ease;
+        }
+
+        .regulation-item:hover {
+            background-color: #f7fafc;
+        }
+
+        .regulation-item:last-child {
+            border-bottom: none;
+        }
+
+        .regulation-info h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+            color: #2d3748;
+        }
+
+        .regulation-meta {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .regulation-status {
+            text-align: right;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-active {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge-updated {
+            background-color: #bee3f8;
+            color: #2a4365;
+        }
+
+        .badge-draft {
+            background-color: #fbb6ce;
+            color: #702459;
+        }
+
+        .alert-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            border-left: 4px solid;
+            margin-bottom: 1rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .alert-critical {
+            border-left-color: #f56565;
+            background-color: #fed7d7;
+        }
+
+        .alert-high {
+            border-left-color: #ed8936;
+            background-color: #feebc8;
+        }
+
+        .alert-medium {
+            border-left-color: #ecc94b;
+            background-color: #fefcbf;
+        }
+
+        .alert-content h4 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: #2d3748;
+        }
+
+        .alert-content p {
+            font-size: 0.9rem;
+            color: #4a5568;
+            line-height: 1.4;
+        }
+
+        .alert-time {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-top: 0.5rem;
+        }
+
+        .sync-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .sync-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .nav-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            background: white;
+            border-radius: 12px;
+            padding: 0.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .nav-tab:not(.active):hover {
+            background-color: #f7fafc;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .regulation-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .regulation-status {
+                margin-top: 0.5rem;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔄 Regulation Sync Module</h1>
+        <p>Automated monitoring of AI regulations with intelligent alerts</p>
+    </div>
+
+    <div class="container">
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="showTab('dashboard')">📊 Dashboard</div>
+            <div class="nav-tab" onclick="showTab('regulations')">📋 Regulations</div>
+            <div class="nav-tab" onclick="showTab('alerts')">⚠️ Alerts</div>
+            <div class="nav-tab" onclick="showTab('monitoring')">👁️ Monitoring</div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background-color: #e6fffa; color: #319795;">📊</div>
+                        <div class="card-title">Active Regulations</div>
+                    </div>
+                    <div class="metric-value" style="color: #319795;">12</div>
+                    <div class="metric-label">Currently Monitored</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background-color: #fef5e7; color: #d69e2e;">⚠️</div>
+                        <div class="card-title">Pending Alerts</div>
+                    </div>
+                    <div class="metric-value" style="color: #d69e2e;">3</div>
+                    <div class="metric-label">Require Attention</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background-color: #f0fff4; color: #38a169;">🔄</div>
+                        <div class="card-title">Last Sync</div>
+                    </div>
+                    <div class="metric-value" style="color: #38a169; font-size: 1.5rem;">2 hours ago</div>
+                    <div class="metric-label">EUR-Lex Database</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background-color: #ebf8ff; color: #3182ce;">📈</div>
+                        <div class="card-title">Compliance Score</div>
+                    </div>
+                    <div class="metric-value" style="color: #3182ce;">87%</div>
+                    <div class="metric-label">Overall Rating</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background-color: #f7fafc; color: #4a5568;">🎯</div>
+                    <div class="card-title">Quick Actions</div>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="sync-button" onclick="syncEurLex()">🔄 Sync EUR-Lex</button>
+                    <button class="sync-button" onclick="generateReport()">📄 Generate Report</button>
+                    <button class="sync-button" onclick="checkCompliance()">✅ Check Compliance</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Regulations Tab -->
+        <div id="regulations" class="tab-content">
+            <div class="regulation-list">
+                <h2 style="margin-bottom: 1.5rem; color: #2d3748;">📋 Monitored Regulations</h2>
+                
+                <div class="regulation-item">
+                    <div class="regulation-info">
+                        <h3><span class="status-indicator status-active"></span>EU AI Act (2024/1689)</h3>
+                        <div class="regulation-meta">Last updated: 2024-08-01 | Version: 1.2 | Impact: High</div>
+                    </div>
+                    <div class="regulation-status">
+                        <span class="status-badge badge-active">Active</span>
+                    </div>
+                </div>
+
+                <div class="regulation-item">
+                    <div class="regulation-info">
+                        <h3><span class="status-indicator status-active"></span>GDPR (2016/679)</h3>
+                        <div class="regulation-meta">Last updated: 2024-07-15 | Version: 2.1 | Impact: High</div>
+                    </div>
+                    <div class="regulation-status">
+                        <span class="status-badge badge-active">Active</span>
+                    </div>
+                </div>
+
+                <div class="regulation-item">
+                    <div class="regulation-info">
+                        <h3><span class="status-indicator status-warning"></span>ISO/IEC 23053:2022</h3>
+                        <div class="regulation-meta">Last updated: 2024-06-20 | Version: 1.0 | Impact: Medium</div>
+                    </div>
+                    <div class="regulation-status">
+                        <span class="status-badge badge-updated">Updated</span>
+                    </div>
+                </div>
+
+                <div class="regulation-item">
+                    <div class="regulation-info">
+                        <h3><span class="status-indicator status-active"></span>NIST AI RMF 1.0</h3>
+                        <div class="regulation-meta">Last updated: 2024-05-10 | Version: 1.0 | Impact: Medium</div>
+                    </div>
+                    <div class="regulation-status">
+                        <span class="status-badge badge-active">Active</span>
+                    </div>
+                </div>
+
+                <div class="regulation-item">
+                    <div class="regulation-info">
+                        <h3><span class="status-indicator status-warning"></span>AI Act Implementation Guidelines</h3>
+                        <div class="regulation-meta">Last updated: 2024-07-25 | Version: Draft 2.0 | Impact: High</div>
+                    </div>
+                    <div class="regulation-status">
+                        <span class="status-badge badge-draft">Draft</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Tab -->
+        <div id="alerts" class="tab-content">
+            <div class="alert-section">
+                <h2 style="margin-bottom: 1.5rem; color: #2d3748;">⚠️ Regulatory Alerts</h2>
+                
+                <div class="alert-item alert-critical">
+                    <div class="alert-content">
+                        <h4>🚨 Critical: AI Act Article 6 Amendment</h4>
+                        <p>New amendment to Article 6 regarding high-risk AI systems classification. Immediate review required for compliance assessment.</p>
+                        <div class="alert-time">2 hours ago | Impact: High | Source: EUR-Lex</div>
+                    </div>
+                </div>
+
+                <div class="alert-item alert-high">
+                    <div class="alert-content">
+                        <h4>⚠️ High: GDPR Article 22 Clarification</h4>
+                        <p>European Data Protection Board issued new guidelines on automated decision-making affecting AI systems.</p>
+                        <div class="alert-time">1 day ago | Impact: Medium | Source: EDPB</div>
+                    </div>
+                </div>
+
+                <div class="alert-item alert-medium">
+                    <div class="alert-content">
+                        <h4>📋 Medium: ISO 23053 Technical Corrigendum</h4>
+                        <p>Technical corrections published for ISO/IEC 23053:2022 framework for AI risk management.</p>
+                        <div class="alert-time">3 days ago | Impact: Low | Source: ISO</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring Tab -->
+        <div id="monitoring" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background-color: #f0f4f8; color: #2d3748;">👁️</div>
+                    <div class="card-title">Monitoring Configuration</div>
+                </div>
+                
+                <div style="margin-top: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem; color: #2d3748;">Active Monitors</h3>
+                    
+                    <div style="display: grid; gap: 1rem;">
+                        <div style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>EUR-Lex AI Act Monitor</strong>
+                                    <div style="font-size: 0.9rem; color: #718096;">Frequency: Every 6 hours | Keywords: AI Act, artificial intelligence</div>
+                                </div>
+                                <span class="status-indicator status-active"></span>
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>GDPR Updates Monitor</strong>
+                                    <div style="font-size: 0.9rem; color: #718096;">Frequency: Daily | Keywords: GDPR, data protection, automated decision</div>
+                                </div>
+                                <span class="status-indicator status-active"></span>
+                            </div>
+                        </div>
+                        
+                        <div style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>ISO Standards Monitor</strong>
+                                    <div style="font-size: 0.9rem; color: #718096;">Frequency: Weekly | Keywords: ISO 23053, AI risk management</div>
+                                </div>
+                                <span class="status-indicator status-active"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Synchronizing with EUR-Lex database...</p>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function syncEurLex() {
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            
+            // Simulate API call
+            setTimeout(() => {
+                loading.style.display = 'none';
+                alert('✅ EUR-Lex synchronization completed successfully!\n\n• 2 new regulations found\n• 1 amendment detected\n• 0 critical alerts generated');
+            }, 3000);
+        }
+
+        function generateReport() {
+            alert('📄 Generating compliance report...\n\nReport will include:\n• Current regulation status\n• Compliance gaps\n• Recommended actions\n• Risk assessment');
+        }
+
+        function checkCompliance() {
+            alert('✅ Compliance check initiated...\n\nChecking:\n• AI Act requirements\n• GDPR compliance\n• ISO standards alignment\n• Risk assessment');
+        }
+
+        // Auto-refresh data every 30 seconds
+        setInterval(() => {
+            console.log('Auto-refreshing regulation data...');
+            // In real implementation, this would fetch fresh data from API
+        }, 30000);
+    </script>
+</body>
+</html>
+
