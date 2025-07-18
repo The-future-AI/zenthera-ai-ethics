@@ -6,6 +6,7 @@ import os
 from routes.compliance import compliance_bp
 from routes.regulation import regulation_bp
 from routes.llm_observability import llm_observability_bp
+from routes.narrative_explainability import narrative_explainability_bp
 
 def create_app():
     app = Flask(__name__, static_folder='static', template_folder='static')
@@ -20,7 +21,8 @@ def create_app():
     # Register blueprints
     app.register_blueprint(compliance_bp, url_prefix='/api/compliance')
     app.register_blueprint(regulation_bp, url_prefix='/api/regulation')
-    app.register_blueprint(llm_observability_bp, url_prefix='/api/llm')
+    app.register_blueprint(llm_observability_bp, url_prefix='/api/llm-observability')
+    app.register_blueprint(narrative_explainability_bp, url_prefix='/api/narrative-explainability')
     
     @app.route('/')
     def index():
@@ -36,6 +38,11 @@ def create_app():
     def llm_observability_dashboard():
         """LLM Observability Engine dashboard"""
         return render_template('llm_observability.html')
+    
+    @app.route('/narrative-explainability')
+    def narrative_explainability_dashboard():
+        """Narrative Explainability & Replay dashboard"""
+        return render_template('narrative_explainability.html')
     
     @app.route('/api/health')
     def health_check():
@@ -79,13 +86,14 @@ def create_app():
                     "status": "active",
                     "endpoints": 18,
                     "description": "Advanced LLM monitoring with risk detection, quality assessment, and performance analytics",
-                    "url": "/api/llm"
+                    "url": "/api/llm-observability"
                 },
                 "4": {
                     "name": "Narrative Explainability & Replay", 
-                    "status": "planned",
-                    "endpoints": 0,
-                    "description": "Session replay and narrative explanations for audit purposes"
+                    "status": "active",
+                    "endpoints": 16,
+                    "description": "Session replay and narrative explanations for audit purposes",
+                    "url": "/api/narrative-explainability"
                 },
                 "5": {
                     "name": "Failure Detection & Alert System",
@@ -107,8 +115,8 @@ def create_app():
                 }
             },
             "total_features": 7,
-            "active_features": 3,
-            "total_endpoints": 41,
+            "active_features": 4,
+            "total_endpoints": 57,
             "last_updated": "2025-07-18T14:30:00Z"
         })
     
@@ -129,15 +137,20 @@ def create_app():
                 "total_risks_detected": 23,
                 "total_compliance_reports": 12,
                 "total_regulations_monitored": 12,
+                "total_session_replays": 47,
+                "total_explanations_generated": 156,
+                "total_ethical_assessments": 89,
+                "total_audit_trails": 23,
                 "average_compliance_score": 0.87,
                 "average_quality_score": 0.847,
+                "average_ethical_alignment": 0.73,
                 "average_response_time": "1.2s"
             },
             "features_status": {
                 "compliance_grid": "active",
                 "regulation_sync": "active",
                 "llm_observability": "active",
-                "narrative_explainability": "planned",
+                "narrative_explainability": "active",
                 "failure_detection": "planned",
                 "bias_tracker": "planned",
                 "testing_sandbox": "planned"
@@ -145,8 +158,14 @@ def create_app():
             "recent_activity": [
                 {
                     "timestamp": "2025-07-18T14:25:00Z",
-                    "type": "risk_detection",
-                    "description": "High-risk interaction detected in GPT-4 session",
+                    "type": "ethical_assessment",
+                    "description": "Critical ethical concerns detected in customer support session",
+                    "severity": "critical"
+                },
+                {
+                    "timestamp": "2025-07-18T14:22:00Z",
+                    "type": "session_replay",
+                    "description": "Privacy violation replay created for audit review",
                     "severity": "high"
                 },
                 {

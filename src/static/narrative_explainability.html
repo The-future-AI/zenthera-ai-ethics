@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenThera - Narrative Explainability & Replay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 0.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-tab:not(.active):hover {
+            background-color: #f7fafc;
+            transform: translateY(-1px);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .metric-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .metric-label {
+            color: #718096;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .replay-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+
+        .replay-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .replay-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .replay-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .play-button {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .play-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .timeline {
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        .timeline-track {
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            position: relative;
+            margin: 1rem 0;
+        }
+
+        .timeline-progress {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .timeline-events {
+            position: relative;
+            margin-top: 2rem;
+        }
+
+        .timeline-event {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            opacity: 0.6;
+        }
+
+        .timeline-event.active {
+            opacity: 1;
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .event-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .event-user-input {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+        }
+
+        .event-model-response {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+        }
+
+        .event-risk-detection {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            color: white;
+        }
+
+        .event-system-intervention {
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+            color: white;
+        }
+
+        .event-human-review {
+            background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
+            color: white;
+        }
+
+        .event-content {
+            flex: 1;
+        }
+
+        .event-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2d3748;
+        }
+
+        .event-description {
+            color: #718096;
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .event-timestamp {
+            font-size: 0.8rem;
+            color: #a0aec0;
+        }
+
+        .event-data {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .explanation-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+
+        .explanation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .explanation-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .style-selector {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .style-button {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .style-button.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .explanation-content {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 4px solid #667eea;
+            line-height: 1.6;
+        }
+
+        .explanation-summary {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .explanation-text {
+            white-space: pre-line;
+            color: #4a5568;
+        }
+
+        .ethical-alignment {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+
+        .alignment-score {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            position: relative;
+        }
+
+        .score-low {
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+        }
+
+        .score-medium {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        }
+
+        .score-high {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        .alignment-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .category-beneficence { border-left-color: #48bb78; }
+        .category-non-maleficence { border-left-color: #e53e3e; }
+        .category-autonomy { border-left-color: #4299e1; }
+        .category-justice { border-left-color: #9f7aea; }
+        .category-transparency { border-left-color: #ed8936; }
+        .category-accountability { border-left-color: #38b2ac; }
+        .category-privacy { border-left-color: #e53e3e; }
+        .category-human-dignity { border-left-color: #d53f8c; }
+
+        .category-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2d3748;
+        }
+
+        .category-score {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .category-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .category-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .category-description {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .audit-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .audit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .audit-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-compliant {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-non-compliant {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .status-needs-review {
+            background: #feebc8;
+            color: #c05621;
+        }
+
+        .findings-list {
+            margin: 1.5rem 0;
+        }
+
+        .finding-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+        }
+
+        .finding-critical { border-left-color: #e53e3e; }
+        .finding-high { border-left-color: #ed8936; }
+        .finding-medium { border-left-color: #ecc94b; }
+        .finding-low { border-left-color: #48bb78; }
+
+        .finding-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2d3748;
+        }
+
+        .finding-description {
+            color: #718096;
+            margin-bottom: 0.5rem;
+        }
+
+        .finding-evidence {
+            background: #f7fafc;
+            border-radius: 4px;
+            padding: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .action-items {
+            margin-top: 1.5rem;
+        }
+
+        .action-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .action-content {
+            flex: 1;
+        }
+
+        .action-title {
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .action-meta {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 0.25rem;
+        }
+
+        .action-priority {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .priority-critical {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .priority-high {
+            background: #feebc8;
+            color: #c05621;
+        }
+
+        .priority-medium {
+            background: #faf089;
+            color: #744210;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .alignment-categories {
+                grid-template-columns: 1fr;
+            }
+            
+            .replay-controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .style-selector {
+                flex-wrap: wrap;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎬 Narrative Explainability & Replay</h1>
+        <p>Session replay, narrative explanations, and ethical alignment assessment</p>
+    </div>
+
+    <div class="container">
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="showTab('dashboard')">📊 Dashboard</div>
+            <div class="nav-tab" onclick="showTab('replay')">🎬 Session Replay</div>
+            <div class="nav-tab" onclick="showTab('explanations')">📝 Explanations</div>
+            <div class="nav-tab" onclick="showTab('ethical')">⚖️ Ethical Alignment</div>
+            <div class="nav-tab" onclick="showTab('audit')">📋 Audit Trails</div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="dashboard-grid">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">🎬</div>
+                        <div class="metric-title">Session Replays</div>
+                    </div>
+                    <div class="metric-value">47</div>
+                    <div class="metric-label">Total Recorded</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">📝</div>
+                        <div class="metric-title">Explanations Generated</div>
+                    </div>
+                    <div class="metric-value">156</div>
+                    <div class="metric-label">Auto + Manual</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">⚖️</div>
+                        <div class="metric-title">Avg Ethical Score</div>
+                    </div>
+                    <div class="metric-value">0.73</div>
+                    <div class="metric-label">Overall Alignment</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">📋</div>
+                        <div class="metric-title">Audit Trails</div>
+                    </div>
+                    <div class="metric-value">23</div>
+                    <div class="metric-label">Compliance Reviews</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">⚠️</div>
+                        <div class="metric-title">High Risk Sessions</div>
+                    </div>
+                    <div class="metric-value">8</div>
+                    <div class="metric-label">Require Review</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">✅</div>
+                        <div class="metric-title">Action Items</div>
+                    </div>
+                    <div class="metric-value">12</div>
+                    <div class="metric-label">Pending</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Replay Tab -->
+        <div id="replay" class="tab-content">
+            <div class="replay-container">
+                <div class="replay-header">
+                    <div>
+                        <div class="replay-title">Customer Support Session - Privacy Concern</div>
+                        <p style="color: #718096; margin-top: 0.5rem;">Session ID: session_001 • Duration: 30 minutes • 8 events</p>
+                    </div>
+                    <div class="replay-controls">
+                        <button class="play-button" onclick="playReplay()">▶ Play Replay</button>
+                        <select style="padding: 0.5rem; border-radius: 8px; border: 2px solid #e2e8f0;">
+                            <option>1x Speed</option>
+                            <option>2x Speed</option>
+                            <option>5x Speed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="timeline">
+                    <div class="timeline-track">
+                        <div class="timeline-progress" id="timelineProgress"></div>
+                    </div>
+                </div>
+
+                <div class="timeline-events" id="timelineEvents">
+                    <div class="timeline-event active" data-event="1">
+                        <div class="event-icon event-user-input">👤</div>
+                        <div class="event-content">
+                            <div class="event-title">User Input</div>
+                            <div class="event-description">Customer asks about account balance</div>
+                            <div class="event-timestamp">14:25:00</div>
+                            <div class="event-data">"What's my account balance?"</div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-event" data-event="2">
+                        <div class="event-icon event-model-response">🤖</div>
+                        <div class="event-content">
+                            <div class="event-title">Model Response</div>
+                            <div class="event-description">GPT-4 generates response with sensitive information</div>
+                            <div class="event-timestamp">14:25:02</div>
+                            <div class="event-data">"Your account balance is $2,450.67. Your SSN is 123-45-6789 and your credit card ending in 4532..."</div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-event" data-event="3">
+                        <div class="event-icon event-risk-detection">⚠️</div>
+                        <div class="event-content">
+                            <div class="event-title">Risk Detection</div>
+                            <div class="event-description">Privacy leak detected - SSN and credit card exposed</div>
+                            <div class="event-timestamp">14:25:02</div>
+                            <div class="event-data">Risk Score: 0.95 | Confidence: 0.98 | Type: privacy_leak</div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-event" data-event="4">
+                        <div class="event-icon event-system-intervention">🛡️</div>
+                        <div class="event-content">
+                            <div class="event-title">System Intervention</div>
+                            <div class="event-description">Response blocked and alternative provided</div>
+                            <div class="event-timestamp">14:25:03</div>
+                            <div class="event-data">Action: response_blocked | Alternative: "Please log into your secure account portal"</div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-event" data-event="5">
+                        <div class="event-icon event-human-review">👨‍💼</div>
+                        <div class="event-content">
+                            <div class="event-title">Human Review</div>
+                            <div class="event-description">Compliance officer confirms privacy violation</div>
+                            <div class="event-timestamp">14:30:15</div>
+                            <div class="event-data">Decision: confirmed_violation | Notes: "Clear privacy leak - SSN and credit card info exposed"</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Explanations Tab -->
+        <div id="explanations" class="tab-content">
+            <div class="explanation-container">
+                <div class="explanation-header">
+                    <div class="explanation-title">Privacy Leak Detection: Executive Summary</div>
+                    <div class="style-selector">
+                        <button class="style-button" onclick="changeStyle('technical')">Technical</button>
+                        <button class="style-button active" onclick="changeStyle('executive')">Executive</button>
+                        <button class="style-button" onclick="changeStyle('regulatory')">Regulatory</button>
+                        <button class="style-button" onclick="changeStyle('user_friendly')">User-Friendly</button>
+                    </div>
+                </div>
+
+                <div class="explanation-content">
+                    <div class="explanation-summary">
+                        Critical privacy violation detected and prevented in customer support interaction
+                    </div>
+                    <div class="explanation-text" id="explanationText">
+**Risk Alert: Privacy Leak Detected**
+
+**Executive Summary:**
+Our AI monitoring system has detected a potential privacy leak issue that requires management attention.
+
+**Risk Level:** Critical
+**Confidence:** 98% certain
+
+**Business Impact:**
+- Potential compliance or reputation risk
+- May require immediate review and action
+- Could affect user trust and satisfaction
+
+**Immediate Actions Required:**
+1. Assign responsible team member for review
+2. Implement temporary safeguards if necessary
+3. Investigate root cause and prevention measures
+4. Update risk management protocols as needed
+
+**Timeline:** Recommend review within 1 hour
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ethical Alignment Tab -->
+        <div id="ethical" class="tab-content">
+            <div class="ethical-alignment">
+                <div class="alignment-score">
+                    <div class="score-circle score-low">0.23</div>
+                    <h3>Critical Ethical Concerns Detected</h3>
+                    <p style="color: #718096;">Severe privacy violation requires immediate attention</p>
+                </div>
+
+                <div class="alignment-categories">
+                    <div class="category-card category-beneficence">
+                        <div class="category-name">Beneficence</div>
+                        <div class="category-score">0.60</div>
+                        <div class="category-bar">
+                            <div class="category-fill" style="width: 60%;"></div>
+                        </div>
+                        <div class="category-description">Attempted to provide helpful information</div>
+                    </div>
+
+                    <div class="category-card category-non-maleficence">
+                        <div class="category-name">Non-Maleficence</div>
+                        <div class="category-score">0.10</div>
+                        <div class="category-bar">
+                            <div class="category-fill" style="width: 10%;"></div>
+                        </div>
+                        <div class="category-description">Severe harm caused by privacy exposure</div>
+                    </div>
+
+                    <div class="category-card category-autonomy">
+                        <div class="category-name">Autonomy</div>
+                        <div class="category-score">0.70</div>
+                        <div class="category-bar">
+                            <div class="category-fill" style="width: 70%;"></div>
+                        </div>
+                        <div class="category-description">Respected user's request for information</div>
+                    </div>
+
+                    <div class="category-card category-justice">
+                        <div class="category-name">Justice</div>
+                        <div class="category-score">0.50</div>
+                        <div class="category-bar">
+                            <div class="category-fill" style="width: 50%;"></div>
+                        </div>
+                        <div class="category-description">No bias detected in response</div>
+                    </div>
+
+                    <div class="category-card category-transparency">
+                        <div class="category-name">Transparency</div>
+                        <div class="category-score">0.30</div>
+                        <div class="category-bar">
+                            <div class="category-fill" style="width: 30%;"></div>
+                        </div>
+                        <div class="category-description">Limited explanation of data sources</div>
+                    </div>
+
+                    <div class="category-card category-accountability">
+                        <div class="category-name">Accountability</div>
+                        <div class="category-score">0.20</div>
+                        <div class="category-bar">
+                            <div class="category-fill" style="width: 20%;"></div>
+                        </div>
+                        <div class="category-description">Insufficient safeguards in place</div>
+                    </div>
+
+                    <div class="category-card category-privacy">
+                        <div class="category-name">Privacy</div>
+                        <div class="category-score">0.00</div>
+                        <div class="category-bar">
+                            <div class="category-fill" style="width: 0%;"></div>
+                        </div>
+                        <div class="category-description">Critical privacy violation detected</div>
+                    </div>
+
+                    <div class="category-card category-human-dignity">
+                        <div class="category-name">Human Dignity</div>
+                        <div class="category-score">0.40</div>
+                        <div class="category-bar">
+                            <div class="category-fill" style="width: 40%;"></div>
+                        </div>
+                        <div class="category-description">Respectful tone but privacy breach</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Trails Tab -->
+        <div id="audit" class="tab-content">
+            <div class="audit-container">
+                <div class="audit-header">
+                    <div>
+                        <h3>Privacy Incident Audit Trail</h3>
+                        <p style="color: #718096; margin-top: 0.5rem;">Audit ID: audit_001 • Type: privacy_incident • Risk Level: Critical</p>
+                    </div>
+                    <div class="audit-status status-non-compliant">Non-Compliant</div>
+                </div>
+
+                <div class="findings-list">
+                    <h4 style="margin-bottom: 1rem; color: #2d3748;">Audit Findings</h4>
+                    
+                    <div class="finding-item finding-critical">
+                        <div class="finding-title">F001: Privacy Violation</div>
+                        <div class="finding-description">SSN and credit card information exposed in model response</div>
+                        <div class="finding-evidence">Response contained 123-45-6789 (SSN) and credit card ending in 4532</div>
+                    </div>
+
+                    <div class="finding-item finding-high">
+                        <div class="finding-title">F002: System Response</div>
+                        <div class="finding-description">Automated detection and intervention successful</div>
+                        <div class="finding-evidence">System detected privacy leak with 95% confidence and blocked response</div>
+                    </div>
+                </div>
+
+                <div class="action-items">
+                    <h4 style="margin-bottom: 1rem; color: #2d3748;">Action Items</h4>
+                    
+                    <div class="action-item">
+                        <div class="action-content">
+                            <div class="action-title">Deploy PII detection filter</div>
+                            <div class="action-meta">Assigned to: Tech Team • Due: July 21, 2025</div>
+                        </div>
+                        <div class="action-priority priority-critical">Critical</div>
+                    </div>
+
+                    <div class="action-item">
+                        <div class="action-content">
+                            <div class="action-title">Review and update privacy policies</div>
+                            <div class="action-meta">Assigned to: Compliance Team • Due: July 25, 2025</div>
+                        </div>
+                        <div class="action-priority priority-high">High</div>
+                    </div>
+
+                    <div class="action-item">
+                        <div class="action-content">
+                            <div class="action-title">Conduct staff training on privacy protocols</div>
+                            <div class="action-meta">Assigned to: HR Team • Due: August 1, 2025</div>
+                        </div>
+                        <div class="action-priority priority-medium">Medium</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing narrative explanation...</p>
+        </div>
+    </div>
+
+    <script>
+        let currentEvent = 1;
+        let isPlaying = false;
+        let replayInterval;
+
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function playReplay() {
+            if (isPlaying) {
+                pauseReplay();
+                return;
+            }
+
+            isPlaying = true;
+            const playButton = document.querySelector('.play-button');
+            playButton.textContent = '⏸ Pause Replay';
+            
+            replayInterval = setInterval(() => {
+                if (currentEvent <= 5) {
+                    // Update timeline progress
+                    const progress = (currentEvent / 5) * 100;
+                    document.getElementById('timelineProgress').style.width = progress + '%';
+                    
+                    // Update event states
+                    const events = document.querySelectorAll('.timeline-event');
+                    events.forEach((event, index) => {
+                        if (index + 1 <= currentEvent) {
+                            event.classList.add('active');
+                        } else {
+                            event.classList.remove('active');
+                        }
+                    });
+                    
+                    currentEvent++;
+                } else {
+                    pauseReplay();
+                    alert('🎬 Replay completed!\n\nThis session shows a critical privacy incident where:\n1. User requested account balance\n2. AI exposed SSN and credit card info\n3. System detected and blocked the response\n4. Human reviewer confirmed the violation\n\nThe incident triggered compliance review and remediation actions.');
+                }
+            }, 2000);
+        }
+
+        function pauseReplay() {
+            isPlaying = false;
+            clearInterval(replayInterval);
+            const playButton = document.querySelector('.play-button');
+            playButton.textContent = '▶ Play Replay';
+        }
+
+        function changeStyle(style) {
+            // Update button states
+            const buttons = document.querySelectorAll('.style-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const explanationText = document.getElementById('explanationText');
+            const loading = document.getElementById('loading');
+            
+            // Show loading
+            loading.style.display = 'block';
+            explanationText.style.opacity = '0.5';
+            
+            // Simulate API call to generate explanation in different style
+            setTimeout(() => {
+                loading.style.display = 'none';
+                explanationText.style.opacity = '1';
+                
+                let newText = '';
+                
+                switch(style) {
+                    case 'technical':
+                        newText = `**Technical Risk Analysis: Privacy Leak**
+
+**Detection Summary:**
+Our risk detection algorithm identified a privacy_leak risk with a score of 0.95 (confidence: 0.98). This indicates a critical level concern that requires immediate attention.
+
+**Technical Details:**
+- **Algorithm Used**: Privacy Leak Detection Engine v2.0
+- **Risk Score**: 0.950 (0.0 = no risk, 1.0 = maximum risk)
+- **Confidence Level**: 0.980 (algorithm certainty in detection)
+- **Detection Method**: Pattern matching and semantic analysis
+
+**Evidence Analysis:**
+- **SSN Found**: 1 instance detected
+- **Credit Card Found**: 1 instance detected
+- **Response Length**: 87 characters
+
+**Recommended Actions:**
+1. Review the flagged content for accuracy of detection
+2. Implement appropriate mitigation measures if confirmed
+3. Update training data to prevent similar occurrences
+4. Monitor for patterns in similar interactions`;
+                        break;
+                        
+                    case 'regulatory':
+                        newText = `**Regulatory Compliance Analysis: Privacy Violation**
+
+**Regulatory Framework:** GDPR Article 32 - Security of Processing
+
+**Violation Summary:**
+Critical privacy breach detected involving exposure of personally identifiable information (PII) in AI system response.
+
+**Compliance Assessment:**
+- **GDPR Article 32**: VIOLATED - Inadequate technical safeguards
+- **AI Act Article 10**: VIOLATED - Insufficient risk management
+- **Data Protection Impact**: HIGH - SSN and financial data exposed
+
+**Regulatory Requirements:**
+1. Immediate breach notification (72 hours)
+2. Data subject notification (without undue delay)
+3. Remediation measures implementation
+4. Process improvement documentation
+
+**Legal Implications:**
+- Potential regulatory fines up to 4% of annual turnover
+- Mandatory reporting to supervisory authority
+- Possible civil liability claims
+
+**Compliance Actions Required:**
+1. Breach notification to DPA within 72 hours
+2. Implement technical safeguards (PII detection)
+3. Update privacy impact assessments
+4. Conduct compliance audit and staff training`;
+                        break;
+                        
+                    case 'user_friendly':
+                        newText = `**Safety Notice: Content Review Required**
+
+We've detected something in this conversation that needs a closer look to ensure everything meets our safety and quality standards.
+
+**What We Found:**
+Our safety systems identified potential privacy leak content that might not align with our community guidelines.
+
+**What This Means:**
+- This is an automated detection, not a final determination
+- A human reviewer will take a look to confirm
+- Your conversation is temporarily flagged for review
+- This helps us maintain a safe and helpful environment
+
+**What Happens Next:**
+1. Our team will review the content within 24 hours
+2. If it's a false alarm, the flag will be removed
+3. If there is an issue, we'll provide guidance on next steps
+4. You'll be notified of the outcome
+
+**Your Privacy:**
+We take your privacy seriously. This review is conducted by trained professionals who follow strict confidentiality protocols.
+
+**Questions?** Contact our support team if you have concerns about this review.`;
+                        break;
+                        
+                    default: // executive
+                        newText = `**Risk Alert: Privacy Leak Detected**
+
+**Executive Summary:**
+Our AI monitoring system has detected a potential privacy leak issue that requires management attention.
+
+**Risk Level:** Critical
+**Confidence:** 98% certain
+
+**Business Impact:**
+- Potential compliance or reputation risk
+- May require immediate review and action
+- Could affect user trust and satisfaction
+
+**Immediate Actions Required:**
+1. Assign responsible team member for review
+2. Implement temporary safeguards if necessary
+3. Investigate root cause and prevention measures
+4. Update risk management protocols as needed
+
+**Timeline:** Recommend review within 1 hour
+
+**Financial Impact:**
+- Potential GDPR fines: Up to €20M or 4% of annual turnover
+- Reputation damage and customer churn risk
+- Implementation costs for improved safeguards
+
+**Strategic Recommendations:**
+- Invest in advanced PII detection technology
+- Enhance AI safety training programs
+- Review and update privacy governance framework`;
+                }
+                
+                explanationText.textContent = newText;
+                
+                // Show success message
+                const currentStyle = style.replace('_', '-');
+                alert(`✅ Explanation updated to ${currentStyle} style!\n\nThe narrative has been regenerated to match the selected audience and communication style.`);
+            }, 1500);
+        }
+
+        // Auto-refresh dashboard data every 30 seconds
+        setInterval(() => {
+            console.log('Auto-refreshing explainability data...');
+            // In real implementation, this would fetch fresh data from API
+        }, 30000);
+
+        // Initialize with first event active
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstEvent = document.querySelector('.timeline-event[data-event="1"]');
+            if (firstEvent) {
+                firstEvent.classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>
+
