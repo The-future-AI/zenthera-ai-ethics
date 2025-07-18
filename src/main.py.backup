@@ -4,37 +4,27 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, send_from_directory
-from flask_cors import CORS
 from src.models.user import db
 from src.routes.user import user_bp
-from src.routes.compliance import compliance_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
-app.config['SECRET_KEY'] = 'zenthera-ai-ethics-secret-key-2025'
+app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
-# Enable CORS for all routes
-CORS(app)
-
-# Register blueprints
 app.register_blueprint(user_bp, url_prefix='/api')
-app.register_blueprint(compliance_bp, url_prefix='/api/compliance')
 
-# Database configuration
+# uncomment if you need to use database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
-
-# Create all database tables
 with app.app_context():
     db.create_all()
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    """Serve static files and SPA routing"""
     static_folder_path = app.static_folder
     if static_folder_path is None:
-        return "Static folder not configured", 404
+            return "Static folder not configured", 404
 
     if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
         return send_from_directory(static_folder_path, path)
@@ -45,28 +35,6 @@ def serve(path):
         else:
             return "index.html not found", 404
 
-@app.route('/health')
-def health_check():
-    """Health check endpoint"""
-    return {
-        'status': 'healthy',
-        'service': 'ZenThera AI Ethics Platform',
-        'version': '1.0.0',
-        'features': {
-            'compliance_grid': 'active',
-            'regulation_sync': 'planned',
-            'llm_observability': 'planned',
-            'explainability': 'planned',
-            'failure_detection': 'planned',
-            'bias_tracker': 'planned',
-            'testing_sandbox': 'planned'
-        }
-    }
 
 if __name__ == '__main__':
-    print("🚀 Starting ZenThera AI Ethics Platform...")
-    print("📊 Feature 1: ZenThera Compliance Grid - ACTIVE")
-    print("🌐 Access: http://localhost:5000")
-    print("📡 API Docs: http://localhost:5000/api/compliance/dashboard")
     app.run(host='0.0.0.0', port=5000, debug=True)
-
