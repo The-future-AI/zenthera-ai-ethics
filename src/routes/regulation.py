@@ -12,7 +12,7 @@ import json
 from typing import Dict, List, Any, Optional
 
 # Import our models
-from ..models.regulation import (
+from models.regulation import (
     Regulation, RegulatoryAlert, RegulatoryTemplate, RegulationMonitor,
     create_sample_regulations, create_sample_templates
 )

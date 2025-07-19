@@ -103,15 +103,17 @@ def initialize_sample_data():
             id=f"event_{i+1:03d}",
             replay_id=replay1.id,
             session_id=replay1.session_id,
-            organization_id="org_demo",
+            organization_id=replay1.organization_id,
             event_type=event_data["event_type"],
-            timestamp=replay1.session_start + timedelta(minutes=i*5),
+            timestamp=datetime.now() - timedelta(minutes=30-i*3),
             sequence_number=i+1,
             event_data=event_data["event_data"],
-            actor_id=f"actor_{i+1}",
+            actor_id=event_data.get("actor_id"),
             actor_type=event_data["actor_type"],
-            duration_ms=2000 + i*500,
-            related_interaction_id=f"interaction_{i+1:03d}" if i < 2 else None
+            duration_ms=event_data.get("duration_ms"),
+            related_interaction_id=event_data.get("related_interaction_id"),
+            related_risk_id=event_data.get("related_risk_id"),
+            event_metadata={}
         )
         replay_events_db[event.id] = event
     

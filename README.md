@@ -1,218 +1,182 @@
-# ZenThera AI Ethics & Governance Platform
+# ZenThera AI Compliance Suite
 
-> **Transforming AI into ethical competitive advantage while ensuring automatic compliance with AI Act and global regulations.**
+**Professional SaaS platform for AI compliance and governance**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)](https://flask.palletsprojects.com/)
+## 🎯 Overview
 
-## 🎯 What is ZenThera?
-
-**ZenThera** is the world's first **AI Ethics & Governance Platform** specifically designed for **AI Act compliance** and responsible AI development. We help organizations build, monitor, and govern AI systems that are transparent, fair, safe, and aligned with human values.
-
-### 🌟 Key Value Proposition
-- **Proactive Ethics** + **Reactive Compliance** in one platform
-- **AI Act readiness** with automated reporting
-- **Real-time monitoring** of AI systems
-- **Predictive risk detection** before problems occur
-
-## 🚀 Features Overview
-
-### ✅ **Implemented Features**
-
-#### 1. **ZenThera Compliance Grid (ZCG)**
-- AI Ethics Readiness Score (0-100)
-- Real-time compliance dashboard
-- Predictive compliance engine
-- Automated AI Act reporting
-- Trust badge certification
-
-#### 2. **Regulation Sync Module** *(In Development)*
-- Automatic EUR-Lex API integration
-- Smart regulatory alerts
-- Regulatory repository with templates
-- Multi-jurisdiction compliance tracking
-
-#### 3. **LLM Observability Engine** *(In Development)*
-- Complete interaction capture
-- Advanced technical metrics
-- Energy consumption tracking
-- Health check dashboard
-
-#### 4. **Narrative Explainability & Replay** *(In Development)*
-- Complete decision timeline
-- Natural language explanations
-- Regulator-ready exports
-- Audit trail generation
-
-#### 5. **Failure Detection & Alert System** *(In Development)*
-- Hallucination detection
-- Real-time bias monitoring
-- Intelligent alert system
-- Automatic incident reporting
-
-#### 6. **Bias & Dataset Tracker** *(In Development)*
-- Dataset representativeness analysis
-- Intersectional equity metrics
-- Actionable diversity recommendations
-- Fairness benchmarking
-
-#### 7. **Synthetic Testing Sandbox** *(In Development)*
-- Controlled testing environment
-- Adversarial attack validation
-- Robustness certification
-- Regulatory evidence generation
+ZenThera is an enterprise-grade AI Ethics & Governance platform designed to help organizations achieve compliance with AI regulations like the EU AI Act, GDPR, ISO 27001, and SOC2. Our modular architecture ensures immediate value while allowing progressive feature adoption.
 
 ## 🏗️ Architecture
 
-### **Technology Stack**
-- **Backend:** Flask + Python 3.8+
-- **Database:** SQLite (development) / PostgreSQL (production)
-- **Frontend:** HTML5 + CSS3 + JavaScript
-- **APIs:** RESTful with JSON responses
-- **Deployment:** Docker + Cloud-ready
+### Modular Design by Technical Dependency
 
-### **Project Structure**
-```
-zenthera-ai-ethics/
-├── src/
-│   ├── models/          # Data models
-│   ├── routes/          # API endpoints
-│   ├── services/        # Business logic
-│   ├── static/          # Frontend assets
-│   └── main.py          # Application entry point
-├── docs/                # Documentation
-├── tests/               # Test suites
-└── examples/            # Usage examples
-```
+#### 🌐 Group A: Independent Features (Always Active)
+- **📡 Regulation Sync Module** - Monitors EUR-Lex, Federal Register, ISO standards automatically
+- **🎯 Predictive Compliance Engine** - AI-powered risk analysis and trend prediction
+- **⭐ Ethical AI Score** - Automated scoring with industry benchmarking
+
+#### 📋 Group B: Document-Dependent Features
+- **📊 Compliance Grid (ZCG)** - Comprehensive compliance scoring across frameworks
+- **⚖️ Bias & Dataset Tracker** - Bias detection and dataset governance
+- **🧪 Synthetic Testing Sandbox** - Automated compliance testing scenarios
+
+#### 🔗 Group C: LLM Integration Features (Optional)
+- **🔍 LLM Observability Engine** - Real-time monitoring of LLM interactions
+- **🎬 Narrative Explainability & Replay** - Session replay and decision explanations
+- **🚨 Failure Detection & Alert System** - Automated risk detection and alerting
 
 ## 🚀 Quick Start
 
-### **Prerequisites**
-- Python 3.8 or higher
-- pip (Python package manager)
-- Git
+### 1. Run the Application
 
-### **Installation**
-
-1. **Clone the repository**
 ```bash
-git clone https://github.com/The-future-AI/zenthera-ai-ethics.git
-cd zenthera-ai-ethics
+cd src/
+python3 main_complete.py
 ```
 
-2. **Create virtual environment**
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+Access the dashboard at: `http://localhost:5015`
 
-3. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
+### 2. Setup Process
 
-4. **Run the application**
-```bash
-cd src
-python main.py
-```
+1. **Dashboard** - View overall compliance status (3/7 features active by default)
+2. **Setup Page** - Upload documents and configure LLM connection
+3. **Progressive Activation** - Features activate as you complete setup steps
 
-5. **Open your browser**
-```
-http://localhost:5000
-```
+### 3. Feature Activation
 
-## 📊 Current Status
+- **Immediate**: 3 features active (Regulation Sync, Predictive Compliance, Ethical AI Score)
+- **After Document Upload**: +3 features (Compliance Grid, Bias Tracker, Testing Sandbox)
+- **After LLM Connection**: +1 feature (LLM Observability Engine)
 
-### **Development Progress**
-- ✅ **Project Setup** (100%)
-- ✅ **Feature 1 - ZCG Models** (100%)
-- 🔄 **Feature 1 - ZCG APIs** (In Progress)
-- ⏳ **Feature 2-7** (Planned)
+## 📊 Features
 
-### **Timeline**
-- **July 2025:** Feature 1 (ZCG) - Foundation
-- **August 2025:** Features 2-3 (Regulation + Observability)
-- **September 2025:** Features 4-5 (Explainability + Alerts)
-- **October 2025:** Features 6-7 (Bias + Testing)
-- **November 2025:** Frontend Integration
-- **December 2025:** Production Release
+### 1. Regulation Sync Module
+- **Real-time monitoring** of regulatory changes
+- **13 official sources** including EUR-Lex, Federal Register, ISO
+- **Automated alerts** for relevant updates
+- **Impact analysis** with AI-powered classification
 
-## 🎯 Market Position
+### 2. Predictive Compliance Engine
+- **Risk scoring** (0.0-1.0) with trend analysis
+- **Predictive alerts** for upcoming compliance issues
+- **Recommendation engine** for proactive measures
 
-### **Target Market**
-- **AI Ethics Leaders:** Large corporations with ESG focus
-- **Compliance-Driven:** Regulated industries (fintech, healthcare)
-- **Innovation Teams:** AI startups and scale-ups
+### 3. Ethical AI Score
+- **Automated scoring** across 8 ethical dimensions
+- **Industry benchmarking** (top 15% performance)
+- **Executive reporting** with actionable insights
 
-### **Competitive Advantage**
-- **Unique focus** on AI Act compliance
-- **Proactive ethics** vs reactive monitoring
-- **Generative AI** specialization vs traditional ML
-- **Public certification** vs internal metrics only
+### 4. Compliance Grid (ZCG)
+- **Multi-framework support** (EU AI Act, GDPR, ISO 27001, SOC2)
+- **Document analysis** with AI-powered gap detection
+- **Compliance scoring** with detailed breakdowns
+- **Action planning** with prioritized recommendations
 
-## 📚 Documentation
+### 5. Bias & Dataset Tracker
+- **Bias detection** across multiple dimensions (gender, race, age)
+- **Dataset governance** with metadata tracking
+- **Fairness metrics** with statistical analysis
+- **Remediation suggestions** for identified issues
 
-- **[Architecture Guide](docs/architecture.md)** - Technical architecture overview
-- **[API Documentation](docs/api/)** - Complete API reference
-- **[User Guide](docs/user-guide.md)** - How to use ZenThera
-- **[Deployment Guide](docs/deployment.md)** - Production deployment
-- **[Contributing](CONTRIBUTING.md)** - How to contribute
+### 6. Synthetic Testing Sandbox
+- **Automated test generation** for compliance scenarios
+- **Simulation environment** for risk assessment
+- **Validation framework** for regulatory requirements
+- **Reporting suite** for audit purposes
+
+### 7. LLM Observability Engine
+- **Real-time monitoring** of LLM interactions
+- **Performance metrics** (latency, tokens, cost)
+- **Risk detection** (hallucinations, bias, toxicity, privacy leaks)
+- **Model comparison** with intelligent benchmarking
+
+## 🔧 Technical Implementation
+
+### APIs
+
+#### Core APIs
+- `GET /api/health` - System health check
+- `GET /api/dashboard-data` - Dashboard metrics
+- `POST /api/upload` - Document upload
+- `POST /api/connect-llm` - LLM connection
+
+#### Integration Options
+1. **SDK Integration** - Non-invasive proxy for LLM requests
+2. **Webhook** - Post-execution log submission
+3. **Batch Upload** - File-based integration for restricted environments
+
+### Supported LLM Providers
+- **OpenAI** (GPT-4, GPT-3.5-turbo)
+- **Anthropic** (Claude-3, Claude-2)
+- **Azure OpenAI** (custom endpoints)
+- **Google** (Gemini Pro)
+- **Custom APIs** (any OpenAI-compatible endpoint)
+
+### File Formats
+- **Documents**: PDF, DOC, DOCX, TXT, MD
+- **Data**: JSON, CSV, XML, YAML
+- **Maximum size**: 50MB per file
+
+## 🎨 User Interface
+
+### Design Principles
+- **Professional SaaS** design inspired by enterprise platforms
+- **Responsive layout** for desktop and mobile
+- **Intuitive navigation** with progressive disclosure
+- **Real-time updates** with auto-refresh capabilities
+
+### Key Pages
+- **Dashboard** - Compliance overview and system status
+- **Setup** - Guided configuration wizard
+- **Feature Pages** - Individual feature dashboards (coming soon)
+
+## 📈 Business Model
+
+### Pricing Tiers
+- **Basic** (€99/mês) - Group A features (3 features)
+- **Professional** (€299/mês) - Groups A + B (6 features)
+- **Enterprise** (€999/mês) - Groups A + B + C (7 features)
+
+### Target Market
+- **500K+ European companies** subject to AI regulations
+- **Any organization using AI** (not just LLMs)
+- **Compliance officers, CTOs, Risk managers**
+
+## 🔄 Development Status
+
+### ✅ Completed (v1.0)
+- Core platform architecture
+- Dashboard and setup pages
+- Document upload system
+- LLM connection framework
+- 7 feature foundations
+- Professional UI/UX
+
+### 🔄 In Progress
+- Individual feature pages
+- Advanced analytics
+- Reporting suite
+- API documentation
+
+### 📋 Roadmap
+- Compliance Engine automation
+- Public leaderboard
+- Government/defense features
+- Multi-language support
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### **Development Setup**
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
+This is a proprietary platform under development. For collaboration opportunities, please contact the development team.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🌟 Roadmap
-
-### **Phase 1: Foundation (Q3 2025)**
-- ✅ ZenThera Compliance Grid
-- 🔄 Regulation Sync Module
-- 🔄 LLM Observability Engine
-
-### **Phase 2: Intelligence (Q4 2025)**
-- ⏳ Narrative Explainability
-- ⏳ Failure Detection System
-- ⏳ Bias & Dataset Tracker
-
-### **Phase 3: Validation (Q4 2025)**
-- ⏳ Synthetic Testing Sandbox
-- ⏳ Frontend Integration
-- ⏳ Production Deployment
-
-### **Phase 4: Scale (2026)**
-- ⏳ Enterprise Features
-- ⏳ Multi-language Support
-- ⏳ Advanced Analytics
+Proprietary software. All rights reserved.
 
 ## 📞 Contact
 
-- **Website:** [Coming Soon]
-- **Email:** dev@zenthera.io
-- **GitHub:** [@The-future-AI](https://github.com/The-future-AI)
-
-## 🙏 Acknowledgments
-
-- **EU AI Act** - Regulatory framework inspiration
-- **OpenAI, Anthropic, Meta** - LLM integration partners
-- **Flask Community** - Excellent web framework
-- **Open Source Community** - Tools and libraries
+For more information about ZenThera AI Compliance Suite, please reach out to our team.
 
 ---
 
-**Built with ❤️ for responsible AI development**
-
-*ZenThera - Where AI meets ethics*
+**ZenThera** - Making AI compliance simple, automated, and comprehensive.
 

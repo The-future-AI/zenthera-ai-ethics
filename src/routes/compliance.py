@@ -5,7 +5,7 @@ Este arquivo define as rotas (endpoints) da API para o sistema de compliance
 
 from flask import Blueprint, request, jsonify
 from datetime import datetime, timedelta
-from src.models.compliance import ComplianceScore, ComplianceAlert, ComplianceReport, db
+from models.compliance import ComplianceScore, ComplianceAlert, ComplianceReport, db
 import json
 
 # Criar blueprint para organizar as rotas

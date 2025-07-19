@@ -8,7 +8,7 @@ from datetime import datetime
 import json
 
 # Importar o banco de dados do template
-from src.models.user import db
+from models.user import db
 
 class ComplianceScore(db.Model):
     """
